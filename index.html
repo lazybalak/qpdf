@@ -1,0 +1,380 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR-PDF Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+        .dark .header {
+            background-color: #ff6f61;
+            color: #ffffff;
+        }
+        .dark .footer {
+            background-color: #ff6f61;
+            color: #ffffff;
+        }
+        .light .header {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+        .light .footer {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+        .header-animation {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            overflow: hidden;
+        }
+        .header-animation span {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+            z-index: 1;
+        }
+        .water {
+            position: absolute;
+            bottom: -100px;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.5);
+            animation: wave 5s infinite linear;
+        }
+        .water:nth-child(2) {
+            bottom: -120px;
+            animation: wave 5s infinite linear;
+            animation-delay: -2.5s;
+        }
+        @keyframes wave {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+    </style>
+</head>
+<body class="light">
+   <header class="header p-4">
+    <div class="container mx-auto flex items-center justify-between">
+        <a href="https://allture.in" class="text-white text-lg font-bold">Home</a>
+        <span class="text-2xl font-bold text-white mx-auto">QR-PDF Generator</span>
+    </div>
+</header>
+                <div class="water"></div>
+                <div class="water"></div>
+            </div>
+        </div>
+    </header>
+    <div class="container mx-auto p-4">
+        <div class="card p-6">
+            <div class="mb-4">
+                <label class="block text-gray-700 font-bold mb-2">Choose an option:</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="text-option" class="btn-primary px-4 py-2 rounded-lg">Generate QR from Text</button>
+                    <button id="upi-option" class="btn-primary px-4 py-2 rounded-lg">Generate QR for UPI ID</button>
+                    <button id="text-to-pdf-option" class="btn-primary px-4 py-2 rounded-lg">Text to PDF</button>
+                    <button id="image-to-pdf-option" class="btn-primary px-4 py-2 rounded-lg">Image to PDF</button>
+                </div>
+            </div>
+            <div id="text-input-section" class="hidden">
+                <div class="mb-4">
+                    <label for="text-input" class="block text-gray-700 font-bold mb-2">Enter Text:</label>
+                    <input type="text" id="text-input" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Enter text to generate QR code">
+                </div>
+                <div class="flex justify-center">
+                    <button id="generate-text-btn" class="btn-primary px-4 py-2 rounded-lg relative">
+                        <span class="loading-spinner hidden absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </span>
+                        <span class="button-text">Generate QR Code</span>
+                    </button>
+                </div>
+            </div>
+            <div id="upi-input-section" class="hidden">
+                <div class="mb-4">
+                    <label for="upi-input" class="block text-gray-700 font-bold mb-2">Enter UPI ID:</label>
+                    <input type="text" id="upi-input" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Enter UPI ID for payment QR code">
+                </div>
+                <div class="mb-4">
+                    <label for="amount-input" class="block text-gray-700 font-bold mb-2">Enter Amount:</label>
+                    <input type="number" id="amount-input" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Enter amount (default is 0)" value="0">
+                </div>
+                <div class="flex justify-center">
+                    <button id="generate-upi-btn" class="btn-primary px-4 py-2 rounded-lg relative">
+                        <span class="loading-spinner hidden absolute inset-0 flex items-center justify-center">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </span>
+                        <span class="button-text">Generate QR Code</span>
+                    </button>
+                </div>
+            </div>
+            <div id="text-to-pdf-section" class="hidden">
+                <div class="mb-4">
+                    <label for="pdf-text-input" class="block text-gray-700 font-bold mb-2">Enter Text:</label>
+                    <textarea id="pdf-text-input" class="w-full p-2 border border-gray-300 rounded-lg" rows="6" placeholder="Enter text to generate PDF"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="spacing-input" class="block text-gray-700 font-bold mb-2">Line Spacing:</label>
+                    <input type="number" id="spacing-input" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Enter line spacing (default is 1.5)" value="1.5">
+                </div>
+                <div class="mb-4">
+                    <label for="page-size-select" class="block text-gray-700 font-bold mb-2">Select Page Size:</label>
+                    <select id="page-size-select" class="w-full p-2 border border-gray-300 rounded-lg">
+                        <option value="a4">A4</option>
+                        <option value="letter">Letter</option>
+                    </select>
+                </div>
+                <div class="flex justify-center">
+                    <button id="generate-pdf-btn" class="btn-primary px-4 py-2 rounded-lg">Generate PDF</button>
+                </div>
+            </div>
+            <div id="image-to-pdf-section" class="hidden">
+                <div class="mb-4">
+                    <label for="image-input" class="block text-gray-700 font-bold mb-2">Select Images:</label>
+                    <input type="file" id="image-input" class="w-full p-2 border border-gray-300 rounded-lg" accept="image/*" multiple>
+                </div>
+                <div class="mb-4">
+                    <label for="image-page-size-select" class="block text-gray-700 font-bold mb-2">Select Page Size:</label>
+                    <select id="image-page-size-select" class="w-full p-2 border border-gray-300 rounded-lg">
+                        <option value="a4">A4</option>
+                        <option value="letter">Letter</option>
+                    </select>
+                </div>
+                <div class="flex justify-center">
+                    <button id="generate-image-pdf-btn" class="btn-primary px-4 py-2 rounded-lg">Generate PDF</button>
+                </div>
+            </div>
+            <div id="qr-code-section" class="hidden mt-6 flex flex-col items-center md:flex-row md:justify-center">
+                <div class="p-4 bg-gray-200 rounded-lg">
+                    <canvas id="qrcode" width="512" height="512"></canvas>
+                </div>
+                <div class="flex flex-col items-center md:ml-4">
+                    <label for="size-select" class="block text-gray-700 font-bold mb-2">Select QR Code Size:</label>
+                    <select id="size-select" class="w-full p-2 border border-gray-300 rounded-lg mb-4">
+                        <option value="256">Small (256x256px)</option>
+                        <option value="512" selected>Medium (512x512px)</option>
+                        <option value="1024">Large (1024x1024px)</option>
+                    </select>
+                    <button id="download-btn" class="btn-primary px-4 py-2 rounded-lg">Download QR Code</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer p-4 text-center mt-8">
+        <p>By using this product, you agree to our <a href="https://termsconditions.allture.in" class="text-yellow-300 hover:underline">Terms and Conditions</a>.</p>
+    </footer>
+
+    <script>
+        document.getElementById('text-option').addEventListener('click', function() {
+            document.getElementById('text-input-section').classList.remove('hidden');
+            document.getElementById('upi-input-section').classList.add('hidden');
+            document.getElementById('text-to-pdf-section').classList.add('hidden');
+            document.getElementById('image-to-pdf-section').classList.add('hidden');
+            document.getElementById('qr-code-section').classList.add('hidden');
+            document.getElementById('text-input-section').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.getElementById('upi-option').addEventListener('click', function() {
+            document.getElementById('upi-input-section').classList.remove('hidden');
+            document.getElementById('text-input-section').classList.add('hidden');
+            document.getElementById('text-to-pdf-section').classList.add('hidden');
+            document.getElementById('image-to-pdf-section').classList.add('hidden');
+            document.getElementById('qr-code-section').classList.add('hidden');
+            document.getElementById('upi-input-section').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.getElementById('text-to-pdf-option').addEventListener('click', function() {
+            document.getElementById('text-to-pdf-section').classList.remove('hidden');
+            document.getElementById('text-input-section').classList.add('hidden');
+            document.getElementById('upi-input-section').classList.add('hidden');
+            document.getElementById('image-to-pdf-section').classList.add('hidden');
+            document.getElementById('qr-code-section').classList.add('hidden');
+            document.getElementById('text-to-pdf-section').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.getElementById('image-to-pdf-option').addEventListener('click', function() {
+            document.getElementById('image-to-pdf-section').classList.remove('hidden');
+            document.getElementById('text-input-section').classList.add('hidden');
+            document.getElementById('upi-input-section').classList.add('hidden');
+            document.getElementById('text-to-pdf-section').classList.add('hidden');
+            document.getElementById('qr-code-section').classList.add('hidden');
+            document.getElementById('image-to-pdf-section').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.getElementById('generate-text-btn').addEventListener('click', function() {
+            const button = this;
+            const spinner = button.querySelector('.loading-spinner');
+            const buttonText = button.querySelector('.button-text');
+            const text = document.getElementById('text-input').value;
+
+            if (!text.trim()) {
+                alert('Please enter some text to generate QR code.');
+                return;
+            }
+
+            spinner.classList.remove('hidden');
+            buttonText.classList.add('hidden');
+
+            setTimeout(() => {
+                const size = parseInt(document.getElementById('size-select').value);
+                QRCode.toCanvas(document.getElementById('qrcode'), text, { width: size, height: size }, function (error) {
+                    spinner.classList.add('hidden');
+                    buttonText.classList.remove('hidden');
+                    if (error) console.error(error);
+                    document.getElementById('qr-code-section').classList.remove('hidden');
+                    document.getElementById('qr-code-section').scrollIntoView({ behavior: 'smooth' });
+                });
+            }, 1000);
+        });
+
+        document.getElementById('generate-upi-btn').addEventListener('click', function() {
+            const button = this;
+            const spinner = button.querySelector('.loading-spinner');
+            const buttonText = button.querySelector('.button-text');
+            const upi = document.getElementById('upi-input').value;
+            const amount = document.getElementById('amount-input').value;
+
+            const upiPattern = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+
+            if (!upiPattern.test(upi)) {
+                alert('Please enter a valid UPI ID.');
+                return;
+            }
+
+            spinner.classList.remove('hidden');
+            buttonText.classList.add('hidden');
+
+            setTimeout(() => {
+                const qrText = `upi://pay?pa=${upi}&am=${amount}`;
+                const size = parseInt(document.getElementById('size-select').value);
+                QRCode.toCanvas(document.getElementById('qrcode'), qrText, { width: size, height: size }, function (error) {
+                    spinner.classList.add('hidden');
+                    buttonText.classList.remove('hidden');
+                    if (error) console.error(error);
+                    document.getElementById('qr-code-section').classList.remove('hidden');
+                    document.getElementById('qr-code-section').scrollIntoView({ behavior: 'smooth' });
+                });
+            }, 1000);
+        });
+
+        document.getElementById('generate-pdf-btn').addEventListener('click', function() {
+            const text = document.getElementById('pdf-text-input').value;
+            const spacing = parseFloat(document.getElementById('spacing-input').value);
+            const pageSize = document.getElementById('page-size-select').value;
+
+            if (!text.trim()) {
+                alert('Please enter some text to generate PDF.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                format: pageSize,
+            });
+
+            const lines = doc.splitTextToSize(text, 180);
+            let y = 10;
+            lines.forEach(line => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 10;
+                }
+                doc.text(line, 10, y);
+                y += spacing * 10;
+            });
+
+            doc.save('text.pdf');
+        });
+
+        document.getElementById('generate-image-pdf-btn').addEventListener('click', function() {
+            const files = document.getElementById('image-input').files;
+            const pageSize = document.getElementById('image-page-size-select').value;
+
+            if (files.length === 0) {
+                alert('Please select some images to generate PDF.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                format: pageSize,
+            });
+
+            Array.from(files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = function() {
+                        const width = doc.internal.pageSize.getWidth();
+                        const height = doc.internal.pageSize.getHeight();
+                        doc.addImage(img, 'JPEG', 0, 0, width, height);
+                        if (index < files.length - 1) {
+                            doc.addPage();
+                        }
+                        if (index === files.length - 1) {
+                            doc.save('images.pdf');
+                        }
+                    };
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        document.getElementById('size-select').addEventListener('change', function() {
+            const size = parseInt(this.value);
+            const text = document.getElementById('text-input').value;
+            const upi = document.getElementById('upi-input').value;
+            const amount = document.getElementById('amount-input').value;
+            let qrText = text;
+
+            if (upi) {
+                qrText = `upi://pay?pa=${upi}&am=${amount}`;
+            }
+
+            QRCode.toCanvas(document.getElementById('qrcode'), qrText, { width: size, height: size }, function (error) {
+                if (error) console.error(error);
+            });
+        });
+
+        document.getElementById('download-btn').addEventListener('click', function() {
+            const canvas = document.getElementById('qrcode');
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'qrcode.png';
+            link.click();
+        });
+    </script>
+</body>
+</html>
